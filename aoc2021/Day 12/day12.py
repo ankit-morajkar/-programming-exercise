@@ -1,7 +1,5 @@
-
-
-file = open('day12_test.in', 'r')
-
+file = open('day12.in', 'r')
+# Part 2
 adjacent_nodes_input = [line for line in file.readlines()]
 
 adjacent_nodes_list = []
@@ -9,15 +7,11 @@ adjacent_nodes_list = []
 for adj_nodes in adjacent_nodes_input:
 	adjacent_nodes_list.append(adj_nodes.strip().split("-"))
 
-#print(adjacent_nodes_list)
-
 unique_nodes_set = set([])
 
 for adj_nodes in adjacent_nodes_list:
 	unique_nodes_set.add(adj_nodes[0])
 	unique_nodes_set.add(adj_nodes[1])
-
-#print(unique_nodes_set)
 
 # Initialize Adjacency Node Dictionary
 
@@ -27,46 +21,50 @@ for adj_nodes in adjacent_nodes_list:
 	adj_dict[adj_nodes[0]].append(adj_nodes[1])
 	adj_dict[adj_nodes[1]].append(adj_nodes[0])
 
-#print(adj_dict)
-
 max_visit_dict = {k: None for k in unique_nodes_set}
 
-for key in max_visit_dict:
-	#print(key)
-	if key.islower() == True:
-		max_visit_dict[key] = 1
+small_caves = []
 
+for key in max_visit_dict:
+	if key in ['start', 'end']:
+		max_visit_dict[key] = 1
+	elif key.islower() == True:
+		max_visit_dict[key] = 2
+		small_caves.append(key)
 	else:
 		max_visit_dict[key] = 10000
 
-# print(max_visit_dict)
-
 number_of_paths = 0
 
-final_paths = []
+def explore(current_node, visit_dict, current_path):
+	global adj_dict
+	global number_of_paths
+	global final_paths
+	global small_caves
 
+	if current_node.islower() and current_node in current_path:
+		currently_visiting_small_cave_2nd_time = True
 
-def explore(current_node, adj_dict, visit_dict, number_of_paths, current_path, final_paths):
-	print("exploring", current_node)
-	current_path_temp = current_path
+	else:
+		currently_visiting_small_cave_2nd_time = False
 
-	current_path_temp.append(current_node)
-	print(current_path_temp)
-	temp_visit_dict = visit_dict
-	temp_visit_dict[current_node] = temp_visit_dict[current_node] - 1
+	current_path = current_path + [current_node]
+	visit_dict_local = visit_dict.copy()
+
+	visit_dict_local[current_node] = visit_dict_local[current_node] - 1
 	if current_node == 'end':
 		number_of_paths = number_of_paths + 1
-		final_paths.append(current_path_temp)
 
 	else:
 		adjacent_nodes = adj_dict[current_node]
-		print("Adjacent Nodes:",adjacent_nodes)
+		if currently_visiting_small_cave_2nd_time:
+			for small_cave in small_caves:
+				visit_dict_local[small_cave] = visit_dict_local[small_cave] - 1
+
 		for adj_node in adjacent_nodes:
-			if temp_visit_dict[adj_node] > 0:
-				number_of_paths, final_paths = explore(adj_node, adj_dict, temp_visit_dict, number_of_paths, current_path_temp, final_paths)
+			if visit_dict_local[adj_node]>0:
+				explore(adj_node, visit_dict_local, current_path)
 
-	return number_of_paths, final_paths
+explore('start', max_visit_dict, [])
 
-number_of_paths, final_paths = explore('start', adj_dict, max_visit_dict, number_of_paths, [], final_paths)
-
-#print(number_of_paths, final_paths)
+print(number_of_paths)
